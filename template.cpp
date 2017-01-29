@@ -93,6 +93,13 @@ struct Geometry
 
 Camera cam;
 
+//Flock *flock;		//Switching away for multi-flock!
+
+#define flockWrapperSet(X,Y) if(selectedFlock != NULL){selectedFlock->X = Y;} else { for(Flock * f: flocks) {f->X = Y;} }
+
+vector<Flock *> flocks;
+Flock * selectedFlock;
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //========================================================================================
@@ -141,7 +148,6 @@ double calculateFPS(double prevTime, double currentTime);
 //**************************************************************************************\\
 //--------------------------------------------------------------------------------------\\
 
-Flock *flock;
 int main(int argc, char **argv)
 {
 	/*FT_Library ft;
@@ -207,10 +213,12 @@ int main(int argc, char **argv)
   cout << "Running with priority: " << getpriority(PRIO_PROCESS, 0) << endl;
   cout <<"User: " << getuid() << endl;
 
-  //Start of program.
-
+  //The flocks:
+	
 	loadObjFile("Models/PyramidBoid.obj", shapes[0].vertices, shapes[0].normals, shapes[0].uvs, shapes[0].indices);
-	flock = new Flock("FlockInfo.txt");
+	Flock * flock = new Flock("FlockInfo.txt");
+	selectedFlock = flock;	//The first flock is selected.
+
 	loadGeometryArrays(programs[0], shapes[0]);
 	loadColor(vec4(1,0.3,0,1), programs[0]);
 	setDrawingMode(1,programs[0]);
@@ -787,20 +795,24 @@ void error_callback(int error, const char* description)
     cout << "Error: " << description << endl;
 }
 
+
 void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	int b1 = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 	int b2 = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 	if (b1 == GLFW_PRESS || b2 == GLFW_PRESS)
 	{
-		uint offset  = flock->boids.size()/20;
+		
 		uint c = 0;
 		vec3 avgPos = vec3(0);
-	/*	for(uint i=0; i<flock->boids.size(); i+=offset)
-		{
-		//	avgPos += flock->boids[i]->position;
-			c++;
-		}*/
+		if(selectedFlock != NULL){
+			uint offset  = selectedFlock->boids.size()/20;						//Only works if flock isn't null.
+		/*	for(uint i=0; i<flock->boids.size(); i+=offset)					//Disabled anyways.
+			{
+			//	avgPos += flock->boids[i]->position;
+				c++;
+			}*/
+		}
 
 		mat4 view= cam.getViewMatrix();
 		mat4 proj= cam.getPerspectiveMatrix();
@@ -813,22 +825,33 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		vec2 v = vec2(xpos, height-ypos);
 		float depth = project(avgPos, view, proj, vec4(0.f,0.f,(float)width, (float)height)).z;
 		vec3 projCursor = unProject(vec3(v.x,v.y,depth), view, proj, vec4(0.f,0.f,(float)width, (float)height));
+		
 
-		flock->herdPoint = projCursor;
+		flockWrapperSet(herdPoint,projCursor);
+/*
+		if(selectedFlock != NULL){
+			selectedFlock->herdPoint = projCursor;	//selected -> herd it.
+		}else{
+			for(Flock * f : flocks){
+				f->herdPoint = projCursor;		//Else, herd all.
+			}
+		}
+*/
 	}
 }
+
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	if(button == GLFW_MOUSE_BUTTON_LEFT && action==GLFW_PRESS)
-		flock->herding = true;
-	else if(button == GLFW_MOUSE_BUTTON_LEFT && action==GLFW_RELEASE)
-		flock->herding = false;
+		flockWrapperSet(herding,true);
+	if(button == GLFW_MOUSE_BUTTON_LEFT && action==GLFW_RELEASE)
+		flockWrapperSet(herding,false);
 
 	if(button == GLFW_MOUSE_BUTTON_RIGHT && action==GLFW_PRESS)
-		flock->cHerding = true;
-	else if(button == GLFW_MOUSE_BUTTON_RIGHT && action==GLFW_RELEASE)
-		flock->cHerding = false;
+		flockWrapperSet(cHerding,true);
+	if(button == GLFW_MOUSE_BUTTON_RIGHT && action==GLFW_RELEASE)
+		flockWrapperSet(cHerding,false);
 }
 
 #define CAM_SPEED 1.f
@@ -861,10 +884,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
     else if(key == GLFW_KEY_R && action == GLFW_PRESS)
     {
+			//TODO:	put this in a function, reset all the things.
+/*
     	flock->boids.clear();
     	delete(flock);
     	flock = new Flock("FlockInfo.txt");
     	glfwSetTime(0);
+*/
     }
 
     else if(key == GLFW_KEY_F12 && action == GLFW_PRESS)
