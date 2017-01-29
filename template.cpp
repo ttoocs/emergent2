@@ -229,16 +229,11 @@ int main(int argc, char **argv)
   //The center sphere. (well, actually slightly off center..)
 
 	vector<Sphere*> Spheres;
-	for(int i=0; i < 32; i++){
-		Sphere *s = new Sphere(vec3((float) (rand() % 100),0,0), 5 );
+	for(int i=0; i < 2; i++){
+		Sphere *s = new Sphere(vec3((float) ((rand() % 200 )- 100),0,0), 5 );
 		Spheres.push_back(s);
+		Flock::objects.push_back(s);
 	}
-	Sphere * s = Spheres[0];
-	//What's this line do :o?
-//	s->getGeometry(shapes[2].vertices, shapes[2].normals, shapes[2].indices);
-	loadGeometryArrays(programs[0], shapes[2]);
-
-	Flock::objects.push_back(s);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -264,11 +259,20 @@ int main(int argc, char **argv)
 		}
 
 		//setDrawingMode(0,programs[0]);
+		//Draw ground:
 		loadColor(vec4(0,0.3,0,1), programs[0]);
 		loadModelMatrix(mat4(1), programs[0]);
 		render(shapes[1], GL_TRIANGLE_STRIP);
+	
+
+		//Draw spheres		
 		loadColor(vec4(0,0,1,1), programs[0]);
-		render(shapes[2], GL_POINTS);
+
+		for(Sphere * s: Spheres){
+			s->getGeometry(shapes[2].vertices, shapes[2].normals, shapes[2].indices);
+			loadGeometryArrays(programs[0], shapes[2]);
+			render(shapes[2], GL_POINTS);
+		}
 
 
 		//cam.setPosition(flock->boids[0]->position + vec3(0,-200,0));
