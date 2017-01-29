@@ -271,7 +271,7 @@ int main(int argc, char **argv)
 		for(Sphere * s: Spheres){
 			s->getGeometry(shapes[2].vertices, shapes[2].normals, shapes[2].indices);
 			loadGeometryArrays(programs[0], shapes[2]);
-			render(shapes[2], GL_POINTS);
+			render(shapes[2], GL_TRIANGLE_STRIP);
 		}
 
 
