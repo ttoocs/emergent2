@@ -125,6 +125,9 @@ void createGeometry(Geometry &g, vector<vec3> vertices, vector<uint> indices);
 void createGeometry(Geometry &g);
 void deleteGeometry(Geometry &g);
 
+void initScene();
+void delScene();
+
 GLFWwindow* createWindow();
 
 string loadSourceFile(string &filepath);
@@ -213,35 +216,7 @@ int main(int argc, char **argv)
   cout << "Running with priority: " << getpriority(PRIO_PROCESS, 0) << endl;
   cout <<"User: " << getuid() << endl;
 
-  //The flocks:
-	
-	loadObjFile("Models/PyramidBoid.obj", shapes[0].vertices, shapes[0].normals, shapes[0].uvs, shapes[0].indices);
-	Flock * flock = new Flock("FlockInfo.txt");
-	selectedFlock = flock;	//The first flock is selected.
-
-	loadGeometryArrays(programs[0], shapes[0]);
-	loadColor(vec4(1,0.3,0,1), programs[0]);
-	setDrawingMode(1,programs[0]);
-
-  //The "ground"
-	float side = 10000;
-	shapes[1].vertices = {vec3(side, side, -flock->radius), vec3(side, -side, -flock->radius),
-		vec3(-side, -side, -flock->radius), vec3(-side, side, -flock->radius)};
-	shapes[1].normals = {vec3(0,0,1), vec3(0,0,1), vec3(0,0,1), vec3(0,0,1)};
-
-	shapes[1].indices = {0,1,2,3,0};
-	loadGeometryArrays(programs[0], shapes[1]);
-
-	cam = *(new Camera(mat3(1), vec3(0,-200,0), width, height));
-
-  //The center sphere. (well, actually slightly off center..)
-
-	vector<Sphere*> Spheres;
-	for(int i=0; i < 2; i++){
-		Sphere *s = new Sphere(vec3((float) ((rand() % 200 )- 100),0,0), 5 );
-		Spheres.push_back(s);
-		Flock::objects.push_back(s);
-	}
+	initScene();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -303,6 +278,55 @@ int main(int argc, char **argv)
 	glfwTerminate();
 }
 //**************************************************************************************\\
+
+
+//Scene functions
+
+void initScene(){
+  //The flocks:
+	
+	loadObjFile("Models/PyramidBoid.obj", shapes[0].vertices, shapes[0].normals, shapes[0].uvs, shapes[0].indices);
+	Flock * flock = new Flock("FlockInfo.txt");
+	selectedFlock = flock;	//The first flock is selected.
+
+	loadGeometryArrays(programs[0], shapes[0]);
+	loadColor(vec4(1,0.3,0,1), programs[0]);
+	setDrawingMode(1,programs[0]);
+
+  //The "ground"
+	float side = 10000;
+	shapes[1].vertices = {vec3(side, side, -flock->radius), vec3(side, -side, -flock->radius),
+		vec3(-side, -side, -flock->radius), vec3(-side, side, -flock->radius)};
+	shapes[1].normals = {vec3(0,0,1), vec3(0,0,1), vec3(0,0,1), vec3(0,0,1)};
+
+	shapes[1].indices = {0,1,2,3,0};
+	loadGeometryArrays(programs[0], shapes[1]);
+
+	cam = *(new Camera(mat3(1), vec3(0,-200,0), width, height));
+
+  //The center sphere. (well, actually slightly off center..)
+
+	vector<Sphere*> Spheres;
+	for(int i=0; i < 2; i++){
+		Sphere *s = new Sphere(vec3((float) ((rand() % 200 )- 100),0,0), 5 );
+		Spheres.push_back(s);
+		Flock::objects.push_back(s);
+	}
+}
+
+void delScene(){
+			selectedFlock = NULL;
+			
+			for(Flock * f: flocks){
+	    	f->boids.clear();
+  	  	delete(f);
+    		f = new Flock("FlockInfo.txt");
+			}
+		
+    	glfwSetTime(0);
+}
+
+
 
 //========================================================================================
 /*
@@ -828,15 +852,6 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		
 
 		flockWrapperSet(herdPoint,projCursor);
-/*
-		if(selectedFlock != NULL){
-			selectedFlock->herdPoint = projCursor;	//selected -> herd it.
-		}else{
-			for(Flock * f : flocks){
-				f->herdPoint = projCursor;		//Else, herd all.
-			}
-		}
-*/
 	}
 }
 
@@ -884,13 +899,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
     else if(key == GLFW_KEY_R && action == GLFW_PRESS)
     {
-			//TODO:	put this in a function, reset all the things.
-/*
-    	flock->boids.clear();
-    	delete(flock);
-    	flock = new Flock("FlockInfo.txt");
-    	glfwSetTime(0);
-*/
+			delScene();
+			initScene();
     }
 
     else if(key == GLFW_KEY_F12 && action == GLFW_PRESS)
