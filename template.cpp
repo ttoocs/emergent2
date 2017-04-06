@@ -35,11 +35,18 @@
 #include <vector>
 #include <unistd.h>
 #include <ft2build.h>
+#include <ctime>
+#include <thread>
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <unistd.h>
+#include <sys/types.h>
 #include FT_FREETYPE_H
 
 #include "Camera.h"
 #include "CustomOperators.h"
-#include "FloorGraph.h"
+#include "ObjParser.h"
+#include "Boid.h"
 
 using namespace std;
 using namespace glm;
@@ -65,10 +72,12 @@ struct Geometry
 	GLuint vertexBuffer;
 	GLuint elmentBuffer;
 	GLuint normalsBuffer;
+	GLuint uvsBuffer;
 
 	vector<vec3> vertices;
 	vector<uint> indices;
 	vector<vec3> normals;
+	vector<vec2> uvs;
 };
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -94,9 +103,10 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
 void callBackInit(GLFWwindow* window);
 void loadGeometryArrays(GLuint program, Geometry &g);
-void render(GLuint program, Geometry &g, GLenum drawType);
+void setDrawingMode(int mode, GLuint program);
+void render(Geometry &g, GLenum drawType);
 void compileShader(GLuint &shader, string &filepath, GLenum shaderType);
-void initDefaultShaders(vector<Shader> &shaders, char** argv);
+void initDefaultShaders(vector<Shader> &shaders);
 void initDefaultProgram(vector<GLuint> &programs, vector<Shader> &shaders);
 void createShader(Shader &s, string file, GLenum type);
 void deleteShader(Shader &s);
@@ -113,6 +123,7 @@ GLuint createShadingProgram(GLuint vertexShader, GLuint fragmentShader);
 int loadViewProjMatrix(Camera &c, GLuint &program);
 int loadColor(vec4 color, GLuint program);
 int loadCamera(vec3 cameraPos, GLuint program);
+int loadModelMatrix(mat4 model, GLuint &program);
 int openGLerror();
 
 double calculateFPS(double prevTime, double currentTime);
@@ -126,6 +137,7 @@ double calculateFPS(double prevTime, double currentTime);
 //**************************************************************************************\\
 //--------------------------------------------------------------------------------------\\
 
+Flock *flock;
 int main(int argc, char **argv)
 {
 	/*FT_Library ft;
@@ -164,78 +176,77 @@ int main(int argc, char **argv)
 //**********************************************************************************
 	vector<GLuint> programs;
 	vector<Shader> shaders;
-	vector<Geometry> shapes;
-	Geometry g;
-	shapes.push_back(g);
+	vector<Geometry> shapes(2);
 
-	initDefaultShaders(shaders, argv);
+	initDefaultShaders(shaders);
 	initDefaultProgram(programs, shaders);
 
 	createGeometry(shapes[0]);
-//***********************************************************************************
+	createGeometry(shapes[1]);
+//**********************************************************************************
+	loadObjFile("Models/PyramidBoid.obj", shapes[0].vertices, shapes[0].normals, shapes[0].uvs, shapes[0].indices);
+	flock = new Flock("FlockInfo.txt");
+	loadGeometryArrays(programs[0], shapes[0]);
+	loadColor(vec4(1,0.3,0,1), programs[0]);
+	setDrawingMode(1,programs[0]);
 
-	Node *testNode = new Node();
-	shapes[0].vertices = testNode->getNodeCircle();
-	Graph* graph= new Graph(testNode);
+	float side = 10000;
+	shapes[1].vertices = {vec3(side, side, -flock->radius), vec3(side, -side, -flock->radius),
+		vec3(-side, -side, -flock->radius), vec3(-side, side, -flock->radius)};
+	shapes[1].normals = {vec3(0,0,1), vec3(0,0,1), vec3(0,0,1), vec3(0,0,1)};
 
-	for(uint i=0; i<2; i++)
-	{
-		graph->addNode(new Node());
-		graph->connect(0,graph->nodes.size()-1);
-	}
-
-	graph->balanceNodes();
-
-	//graph->nodes[0]->position = vec3(0);
+	shapes[1].indices = {0,1,2,3,0};
+	loadGeometryArrays(programs[0], shapes[1]);
 
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
-	cam = *(new Camera(mat3(1), vec3(0,-20,0), width, height));
+	cam = *(new Camera(mat3(1), vec3(0,-200,0), width, height));
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-		glPointSize(10.f);
+	glPointSize(10.f);
+	float t=0;
+
+	errno = 0;
+	setpriority(PRIO_PROCESS, 0, -20);
+
+    cout << "Running with priority: " << getpriority(PRIO_PROCESS, 0) << endl;
+    cout <<"User: " << getuid() << endl;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		if(loadViewProjMatrix(cam, programs[0])!=0)
 			return 1;
 
-		glClearColor(0, 0.2f, 0.2f, 1.0f);
+		//float temp = t;
+		t = glfwGetTime();
+		// cout << calculateFPS(temp, t) << endl;
+		//t+=0.005;
+		glClearColor(0.f, 0.8f, 1.f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		vector<vec3> centers;
-		for(Node *n: graph->nodes)
+		flock->update(t);
+		setDrawingMode(1,programs[0]);
+		glUseProgram(programs[0]);
+		for(Boid *b: flock->boids)
 		{
-			shapes[0].vertices = n->getNodeCircle();
-			centers.push_back(n->position);
-			loadGeometryArrays(programs[0], shapes[0]);
-
-			loadColor(vec4(0,0.3,1,1), programs[0]);
-			render(programs[0], shapes[0], GL_LINE_STRIP);
+			loadColor(vec4(1,0.3,0,1), programs[0]);
+			loadModelMatrix(b->getModelMatrix(), programs[0]);
+			render(shapes[0], GL_TRIANGLE_STRIP);
 		}
 
-		shapes[0].vertices = centers;
-		loadColor(vec4(0,0.3,1,1), programs[0]);
-		loadGeometryArrays(programs[0], shapes[0]);
-		render(programs[0], shapes[0], GL_POINTS);
+		//setDrawingMode(0,programs[0]);
+		loadColor(vec4(0,0.6,0.2,1), programs[0]);
+		loadModelMatrix(mat4(1), programs[0]);
+		render(shapes[1], GL_TRIANGLE_STRIP);
 
-		shapes[0].indices = graph->getEdges();
-		loadColor(vec4(0,0.3,1,1), programs[0]);
-		loadGeometryArrays(programs[0], shapes[0]);
-		render(programs[0], shapes[0], GL_LINES);
+		//cam.setPosition(flock->boids[0]->position + vec3(0,-200,0));
+	//	cam.setLookDirection(flock->boids[0]->velocity);
 
-		shapes[0].indices.clear();
+		loadCamera(cam.getPosition(), programs[0]);
 
-		GLenum status = openGLerror();
-		if(status!=GL_NO_ERROR)
-		{
-			cerr << "\nAn error has ocurred.\n"
-				<< "Error number: " << status << "\nTerminating!" << endl;
-			return 1;
-		}
-
-    glfwPollEvents();
-    glfwSwapBuffers(window);
+	    glfwPollEvents();
+	    glfwSwapBuffers(window);
 	}
 	//Cleanup
 	for(Shader s: shaders)
@@ -256,6 +267,20 @@ int main(int argc, char **argv)
 */
 //========================================================================================
 
+void setDrawingMode(int mode, GLuint program)
+{
+	glUseProgram(program);
+	GLint loc = glGetUniformLocation(program, "drawMode");
+	if(loc == GL_INVALID_VALUE || loc==GL_INVALID_OPERATION)
+	{
+		cerr << "Error returned when trying to find uniform location."
+			<< "\nuniform: drawMode"
+			<< "Error num: " << loc
+			<< endl;
+	}
+	glUniform1i(loc, mode);
+}
+
 //Need more versions of this:
 void loadGeometryArrays(GLuint program, Geometry &g)
 {
@@ -265,7 +290,7 @@ void loadGeometryArrays(GLuint program, Geometry &g)
 
 	glBindBuffer(GL_ARRAY_BUFFER, g.vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, g.vertices.size()*sizeof(vec3),
-		g.vertices.data(), GL_DYNAMIC_DRAW);
+		g.vertices.data(), GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*)0);
@@ -274,23 +299,21 @@ void loadGeometryArrays(GLuint program, Geometry &g)
 	{
 		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, g.normalsBuffer);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(vec3), (void*)0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(vec3), (void*)0);
 		glBufferData(GL_ARRAY_BUFFER, g.normals.size()*sizeof(vec3),
-			g.normals.data(), GL_DYNAMIC_DRAW);
+			g.normals.data(), GL_STATIC_DRAW);
 	}
 
 	if(g.indices.size()>0)
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g.elmentBuffer);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, g.indices.size()*sizeof(uint),
-			g.indices.data(), GL_DYNAMIC_DRAW);
+			g.indices.data(), GL_STATIC_DRAW);
 	}
 }
 
-void render(GLuint program, Geometry &g, GLenum drawType)
+void render(Geometry &g, GLenum drawType)
 {
-	glUseProgram(program);
-
 	glBindVertexArray(g.vertexArray);
 
 	if(g.indices.size()>0)
@@ -298,6 +321,22 @@ void render(GLuint program, Geometry &g, GLenum drawType)
 
 	else
 		glDrawArrays(drawType, 0, g.vertices.size());
+}
+
+int loadModelMatrix(mat4 model, GLuint &program)
+{
+	GLint loc = glGetUniformLocation(program, "model");
+	if(loc == GL_INVALID_VALUE || loc==GL_INVALID_OPERATION)
+	{
+		cerr << "Error returned when trying to find uniform location."
+			<< "\nuniform: model"
+			<< "Error num: " << loc
+			<< endl;
+		return -1;
+	}
+	glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(model));
+
+	return 0;
 }
 
 int loadViewProjMatrix(Camera &c, GLuint &program)
@@ -333,11 +372,11 @@ int loadColor(vec4 color, GLuint program)
 {
 	glUseProgram(program);
 	GLint loc = glGetUniformLocation(program, "color");
-	if (loc == -1)
+	/*if (loc == -1)
 	{
-		cerr << "Uniform: \"color\" not found." << endl;
+		cerr << "Uniform: error loading \"color\"." << endl;
 		return -1;
-	}
+	}*/
 	glUniform4f(loc, color[0], color[1], color[2], color[3]);
 
 	return 1;
@@ -349,7 +388,7 @@ int loadCamera(vec3 cameraPos, GLuint program)
 	GLint loc = glGetUniformLocation(program, "cameraPos");
 	if (loc == -1)
 	{
-		cerr << "Uniform: \"cameraPos\" not found." << endl;
+		cerr << "Uniform: error loading \"cameraPos\"." << endl;
 		return -1;
 	}
 	glUniform3f(loc, cameraPos[0], cameraPos[1], cameraPos[2]);
@@ -560,7 +599,7 @@ string mat4ToString(mat4 m)
 double calculateFPS(double prevTime, double currentTime)
 {
 	double elapsedTime = currentTime - prevTime;
-	return 1/elapsedTime;
+	return 1.f/elapsedTime;
 }
 //########################################################################################
 
@@ -596,9 +635,9 @@ GLFWwindow* createWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
 	GLFWwindow* window = glfwCreateWindow(mode->width, mode->height-40,
-		"OpenGL Template", NULL, NULL);
+		"BOIDS", NULL, NULL);
 	if (!window)
 	{
 
@@ -628,15 +667,15 @@ void initDefaultProgram(vector<GLuint> &programs, vector<Shader> &shaders)
 	shaders[1].program=programs[0];
 }
 
-void initDefaultShaders(vector<Shader> &shaders, char** argv)
+void initDefaultShaders(vector<Shader> &shaders)
 {
-	string str1(argv[1]);
+	string str1 = "Shaders/VertexShader.glsl";
 	Shader s1;
 	shaders.push_back(s1);
 
 	createShader(shaders[0], str1, GL_VERTEX_SHADER);
 
-	string str2(argv[2]);
+	string str2 = "Shaders/FragmentShader.glsl";
 	Shader s2;
 	shaders.push_back(s2);
 
@@ -662,12 +701,11 @@ void initDefaultShaders(vector<Shader> &shaders, char** argv)
 	pos.y = -(2*(ypos)-height)/(height);
 
 	return pos;
-}
+}*/
 
-float selectionRadius = 30;
-int cursorSelectMass(GLFWwindow *window)
+int cursorSelectNode(GLFWwindow *window)
 {
-	double xpos, ypos;
+	/*double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 
 	mat4 view= cam.getViewMatrix();
@@ -677,23 +715,28 @@ int cursorSelectMass(GLFWwindow *window)
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
 	vec3 screenPos;
-	for(Mass *m : scenes[selectedScene]->masses)
+	for(Node *node : graph->nodes)
 	{
-		screenPos = project(m->position, view, proj, vec4(0.f,0.f,(float)width, (float)height));
+		screenPos = project(node->position, view, proj, vec4(0.f,0.f,(float)width, (float)height));
+		float depth = screenPos.z;
 		vec2 v = vec2(xpos, height-ypos);
+		vec3 projCursor = unProject(vec3(v.x,v.y,depth), view, proj, vec4(0.f,0.f,(float)width, (float)height));
 
-		if(abs(v.x-screenPos.x)<= selectionRadius
-			&& abs(v.y-screenPos.y)<=selectionRadius)
+		cout << "Center: " << screenPos << endl;
+		cout << "Cursor: " << v << endl;
+
+		if(length(projCursor-node->position) < node->size)
 			break;
 
 		count++;
 	}
-
-	if(count < scenes[selectedScene]->masses.size())
+	cout << endl;
+	if(count < graph->nodes.size())
 		return count;
 	else
-		return -1;
-}*/
+		return -1;*/
+		return 1;
+}
 //########################################################################################
 
 //========================================================================================
@@ -707,14 +750,19 @@ void error_callback(int error, const char* description)
     cout << "Error: " << description << endl;
 }
 
+int selectedNode =-1;
 void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
+	int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+	if (state == GLFW_PRESS && selectedNode>-1)
+	{
 
+	}
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-
+	selectedNode = cursorSelectNode(window);
 }
 
 #define CAM_SPEED 0.5f
@@ -743,6 +791,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     			//subtract 1 to prevent it from going into full screen mode
 
     	glfwMaximizeWindow(window);
+    }
+
+    else if(key == GLFW_KEY_R && action == GLFW_PRESS)
+    {
+    	flock->boids.clear();
+    	delete(flock);
+    	flock = new Flock("FlockInfo.txt");
+    	glfwSetTime(0);
     }
 
     else if(key == GLFW_KEY_F12 && action == GLFW_PRESS)

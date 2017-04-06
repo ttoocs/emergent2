@@ -38,7 +38,7 @@ Camera::Camera(mat3 frame, vec3 pos, float w, float h)
 	width = w;
 	height = h;
 	zNear = 0.01;
-	zFar = 2000;
+	zFar = 15000;
 }
 
 /*

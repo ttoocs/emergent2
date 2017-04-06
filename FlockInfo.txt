@@ -1,0 +1,17 @@
+BoidNum: 3000
+
+maxAcceleration: 10
+maxVelocity: 20
+fov: 200
+
+sepRadius: 13
+alignmentRadius: 15
+cohesionRadius: 25
+
+sepCoeff: 4
+alignmentCoeff: 0.7
+cohesionCoeff: 0.9
+
+radius: 500
+
+center: 0 0 0
