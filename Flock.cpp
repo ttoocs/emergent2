@@ -50,7 +50,7 @@ void Flock::hash(Boid* b)
 }
 
 
-vector<Boid*> Flock::getBoid(int i, int j, int k)
+vector<Boid*> Flock::getBoids(int i, int j, int k)
 {
   uint hashIndex = i*LP1+ j*LP2 + k*LP3;
   hashIndex = hashIndex%hashTable.size();

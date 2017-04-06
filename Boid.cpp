@@ -30,7 +30,7 @@ void Boid::hashBehave()
           {
             if(z+k>=0)
             {
-              vector<Boid*> boids = myFlock->getBoid(i+x,j+y,k+z);
+              vector<Boid*> boids = myFlock->getBoids(i+x,j+y,k+z);
               behave(boids);
             }
           }
@@ -118,57 +118,36 @@ vec3 Boid::ruleCohesion(vector<Boid*> &boids)
   return cohesion;
 }
 
+vec3 Boid::ruleHerd()
+{
+  vec3 dir = myFlock->herdPoint - position;
+  if(length(dir)>0)
+    dir = normalize(dir);
+  return dir;
+}
+
+vec3 Boid::ruleCounterHerd()
+{
+  vec3 dir = position-myFlock->herdPoint;
+  return dir;
+}
+
 void Boid::behave(vector<Boid*> &boids)
 {
   vec3 separation = ruleSep(boids);
   vec3 alignment = ruleAl(boids);
   vec3 cohesion = ruleCohesion(boids);
-  /*int cohesionNum = 0;
-  int velocityNum = 0;
-  for(Boid *b1:boids)
-  {
-    vec3 dir = b1->position-position;
 
-    if(this!=b1 && detect(b1))
-    {
-      if(length(dir)<EPSILON)
-        separation += vec3(0,0,0);
-
-      else if(length(dir)<myFlock->sepRadius)
-        separation -= normalize(dir)*(10.f/length(dir));
-
-      if(length(dir)<myFlock->alignmentRadius)
-      {
-        alignment += b1->velocity*(10.f/length(dir));
-        velocityNum++;
-      }
-
-      if(length(dir) < myFlock->cohesionRadius)
-      {
-        cohesion += b1->position;
-        cohesionNum++;
-      }
-    }
-  }
-
-  if(length(separation)>EPSILON)
-    separation = normalize(separation);
-
-  if(cohesionNum>0)
-  {
-    cohesion = cohesion/(float)cohesionNum;
-    cohesion = normalize(cohesion-position);
-  }
-
-  if(velocityNum>0)
-  {
-    vec3 avgVel = alignment/(float)velocityNum;
-    alignment = avgVel;
-  }*/
+  vec3 herd = vec3(0);
+  if(myFlock->herding)
+    herd = ruleHerd();
+  else if(myFlock->cHerding)
+    herd = ruleCounterHerd()*100.f;
 
   netAcceleration +=  myFlock->sepCoeff*separation +
                       myFlock->alignmentCoeff*alignment +
-                      myFlock->cohesionCoeff*cohesion;
+                      myFlock->cohesionCoeff*cohesion +
+                      herd;
 }
 
 void Boid::calculateMovement(float t)
@@ -228,3 +207,59 @@ Boid::Boid(vec3 p, vec3 v, vec3 f)
   velocity = v;
   netAcceleration = f;
 }
+
+/*
+void Boid::behave(vector<Boid*> &boids)
+{
+  vec3 separation = ruleSep(boids);
+  vec3 alignment = ruleAl(boids);
+  vec3 cohesion = ruleCohesion(boids);
+  vec3 
+  /*int cohesionNum = 0;
+  int velocityNum = 0;
+  for(Boid *b1:boids)
+  {
+    vec3 dir = b1->position-position;
+
+    if(this!=b1 && detect(b1))
+    {
+      if(length(dir)<EPSILON)
+        separation += vec3(0,0,0);
+
+      else if(length(dir)<myFlock->sepRadius)
+        separation -= normalize(dir)*(10.f/length(dir));
+
+      if(length(dir)<myFlock->alignmentRadius)
+      {
+        alignment += b1->velocity*(10.f/length(dir));
+        velocityNum++;
+      }
+
+      if(length(dir) < myFlock->cohesionRadius)
+      {
+        cohesion += b1->position;
+        cohesionNum++;
+      }
+    }
+  }
+
+  if(length(separation)>EPSILON)
+    separation = normalize(separation);
+
+  if(cohesionNum>0)
+  {
+    cohesion = cohesion/(float)cohesionNum;
+    cohesion = normalize(cohesion-position);
+  }
+
+  if(velocityNum>0)
+  {
+    vec3 avgVel = alignment/(float)velocityNum;
+    alignment = avgVel;
+  }
+
+  netAcceleration +=  myFlock->sepCoeff*separation +
+                      myFlock->alignmentCoeff*alignment +
+                      myFlock->cohesionCoeff*cohesion;
+}
+*/

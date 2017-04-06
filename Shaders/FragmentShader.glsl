@@ -26,6 +26,6 @@ void main()
   	e = normalize(e);
   	vec3 h = normalize(e+l);
 
-  	outColor = vec4(c*(vec3(0.1)+max(0,dot(n,l))) + vec3(0.1)*max(0,pow(dot(h,n), 1000)), 1);
+  	outColor = vec4(c*(vec3(0.5)+max(0,dot(n,l))) + vec3(0.1)*max(0,pow(dot(h,n), 1000)), 1);
   }
 }

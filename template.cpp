@@ -236,13 +236,12 @@ int main(int argc, char **argv)
 		}
 
 		//setDrawingMode(0,programs[0]);
-		loadColor(vec4(0,0.6,0.2,1), programs[0]);
+		loadColor(vec4(0,0.3,0,1), programs[0]);
 		loadModelMatrix(mat4(1), programs[0]);
 		render(shapes[1], GL_TRIANGLE_STRIP);
 
 
-
-		//cam.setPosition(flock->boids[0]->position + vec3(0,-200,0));
+		cam.setPosition(flock->boids[0]->position + vec3(0,-200,0));
 		//cam.setLookDirection(flock->boids[0]->velocity);
 
 		loadCamera(cam.getPosition(), programs[0]);
@@ -739,11 +738,6 @@ int cursorSelectNode(GLFWwindow *window)
 		return -1;*/
 		return 1;
 }
-
-vec3 getAvgFlockPos(Flock *f)
-{
-
-}
 //########################################################################################
 
 //========================================================================================
@@ -757,41 +751,51 @@ void error_callback(int error, const char* description)
     cout << "Error: " << description << endl;
 }
 
-int selectedNode =-1;
 void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-	if (state == GLFW_PRESS)
+	int b1 = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+	int b2 = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+	if (b1 == GLFW_PRESS || b2 == GLFW_PRESS)
 	{
-		uint offset  = f->boids.size()/20;
+		uint offset  = flock->boids.size()/20;
 		uint c = 0;
 		vec3 avgPos = vec3(0);
-		for(uint i=0; i<f->boids.size(); i+=offset)
+		for(uint i=0; i<flock->boids.size(); i+=offset)
 		{
-			avgPos += f->boids[i]->position;
+			avgPos += flock->boids[i]->position;
 			c++;
 		}
 
 		mat4 view= cam.getViewMatrix();
 		mat4 proj= cam.getPerspectiveMatrix();
 
-		uint count = 0;
 		int width, height;
 		glfwGetWindowSize(window, &width, &height);
 
 		avgPos *= (1.f/(float)c);
 
-		float depth = project(avgPos), view, proj, vec4(0.f,0.f,(float)width, (float)height)).z;
+		vec2 v = vec2(xpos, height-ypos);
+		float depth = project(avgPos, view, proj, vec4(0.f,0.f,(float)width, (float)height)).z;
+		vec3 projCursor = unProject(vec3(v.x,v.y,depth), view, proj, vec4(0.f,0.f,(float)width, (float)height));
 
+		flock->herdPoint = projCursor;
 	}
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	selectedNode = cursorSelectNode(window);
+	if(button == GLFW_MOUSE_BUTTON_LEFT && action==GLFW_PRESS)
+		flock->herding = true;
+	else if(button == GLFW_MOUSE_BUTTON_LEFT && action==GLFW_RELEASE)
+		flock->herding = false;
+
+	if(button == GLFW_MOUSE_BUTTON_RIGHT && action==GLFW_PRESS)
+		flock->cHerding = true;
+	else if(button == GLFW_MOUSE_BUTTON_RIGHT && action==GLFW_RELEASE)
+		flock->cHerding = false;
 }
 
-#define CAM_SPEED 0.5f
+#define CAM_SPEED 1.f
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -809,7 +813,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     		glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0,
     			mode->width, mode->height, mode->refreshRate);
 
-    	//If a monitor is attached, detach it and set the dimesnions to that of
+    	//If a monitor is attached, detach it and set the dimensions to that of
     	//The primary's monitor resolution. This makes the window windowed
     	else
     		glfwSetWindowMonitor(window, NULL, 0, 0,

@@ -61,6 +61,8 @@ private:
   vec3 ruleSep(vector<Boid*> &boids);
   vec3 ruleAl(vector<Boid*> &boids);
   vec3 ruleCohesion(vector<Boid*> &boids);
+  vec3 ruleHerd();
+  vec3 ruleCounterHerd();
 };
 class Flock
 {
@@ -82,7 +84,11 @@ public:
   float alignmentCoeff = 0.001;
   float cohesionCoeff = 0.5;
 
+  bool herding = false;
+  bool cHerding = false;
+
   vec3 center;
+  vec3 herdPoint;
   float radius = 500;
 
   Flock(int boidNum);
@@ -92,5 +98,5 @@ public:
   //void subdivide(vector<Boid*> &boids);
   void allocate();
   void hash(Boid *b);
-  vector<Boid*> getBoid(int i, int j, int k);
+  vector<Boid*> getBoids(int i, int j, int k);
 };
