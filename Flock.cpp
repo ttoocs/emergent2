@@ -6,6 +6,7 @@ using namespace std;
 Flock::Flock(int boidNum)
 {
   srand(time(NULL));
+  //srand(42);
   boids.clear();
   for(int i=0; i<boidNum; i++)
   {

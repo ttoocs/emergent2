@@ -10,7 +10,7 @@ SRC=*.cpp
 DEPS=*.h
 
 $(EXEFILE): 
-	$(CC) -std=c++11 -o $(EXEFILE) -Wall -Wno-comment $(SRC) $(IFLAGS) $(LFLAGS) $(LIBS) -Ofast
+	$(CC) -std=c++11 -o $(EXEFILE) -Wall -Wno-comment $(SRC) $(IFLAGS) $(LFLAGS) $(LIBS)
 
 all: run clean
 

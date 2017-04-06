@@ -40,12 +40,90 @@ void Boid::hashBehave()
   }
 }
 
-void Boid::behave(vector<Boid*> &boids)
+vec3 Boid::ruleSep(vector<Boid*> &boids)
 {
   vec3 separation = vec3(0);
+  for(Boid *b1:boids)
+  {
+    vec3 dir = b1->position-position;
+
+    if(this!=b1 && detect(b1))
+    {
+      if(length(dir)<EPSILON)
+        separation += vec3(0,0,0);
+
+      else if(length(dir)<myFlock->sepRadius)
+        separation -= normalize(dir)*(10.f/length(dir));
+    }
+
+  }
+
+  if(length(separation)>EPSILON)
+    separation = normalize(separation);
+
+  return separation;
+}
+
+vec3 Boid::ruleAl(vector<Boid*> &boids)
+{
   vec3 alignment = vec3(0);
+  int velocityNum = 0;
+  for(Boid *b1:boids)
+  {
+    vec3 dir = b1->position-position;
+
+    if(this!=b1 && detect(b1))
+    {
+      if(length(dir)<myFlock->alignmentRadius)
+      {
+        alignment += b1->velocity*(10.f/length(dir));
+        velocityNum++;
+      }
+    }
+  }
+
+  if(velocityNum>0)
+  {
+    vec3 avgVel = alignment/(float)velocityNum;
+    alignment = avgVel;
+  }
+
+  return alignment;
+}
+
+vec3 Boid::ruleCohesion(vector<Boid*> &boids)
+{
   vec3 cohesion = vec3(0);
   int cohesionNum = 0;
+  for(Boid *b1:boids)
+  {
+    vec3 dir = b1->position-position;
+
+    if(this!=b1 && detect(b1))
+    {
+      if(length(dir) < myFlock->cohesionRadius)
+      {
+        cohesion += b1->position;
+        cohesionNum++;
+      }
+    }
+  }
+
+  if(cohesionNum>0)
+  {
+    cohesion = cohesion/(float)cohesionNum;
+    cohesion = normalize(cohesion-position);
+  }
+
+  return cohesion;
+}
+
+void Boid::behave(vector<Boid*> &boids)
+{
+  vec3 separation = ruleSep(boids);
+  vec3 alignment = ruleAl(boids);
+  vec3 cohesion = ruleCohesion(boids);
+  /*int cohesionNum = 0;
   int velocityNum = 0;
   for(Boid *b1:boids)
   {
@@ -86,7 +164,7 @@ void Boid::behave(vector<Boid*> &boids)
   {
     vec3 avgVel = alignment/(float)velocityNum;
     alignment = avgVel;
-  }
+  }*/
 
   netAcceleration +=  myFlock->sepCoeff*separation +
                       myFlock->alignmentCoeff*alignment +

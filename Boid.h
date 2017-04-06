@@ -58,9 +58,9 @@ public:
   mat4 getModelMatrix();
 
 private:
-  vec3 ruleSep();
-  vec3 ruleAl();
-  vec3 ruleCohesion();
+  vec3 ruleSep(vector<Boid*> &boids);
+  vec3 ruleAl(vector<Boid*> &boids);
+  vec3 ruleCohesion(vector<Boid*> &boids);
 };
 class Flock
 {

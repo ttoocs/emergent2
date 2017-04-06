@@ -210,17 +210,17 @@ int main(int argc, char **argv)
 	errno = 0;
 	setpriority(PRIO_PROCESS, 0, -20);
 
-    cout << "Running with priority: " << getpriority(PRIO_PROCESS, 0) << endl;
-    cout <<"User: " << getuid() << endl;
+  cout << "Running with priority: " << getpriority(PRIO_PROCESS, 0) << endl;
+  cout <<"User: " << getuid() << endl;
 
 	while (!glfwWindowShouldClose(window))
 	{
 		if(loadViewProjMatrix(cam, programs[0])!=0)
 			return 1;
 
-		//float temp = t;
+	//	float temp = t;
 		t = glfwGetTime();
-		// cout << calculateFPS(temp, t) << endl;
+		// cout << calculateFPS(temp, t) << endl;*/
 		//t+=0.005;
 		glClearColor(0.f, 0.8f, 1.f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -240,13 +240,15 @@ int main(int argc, char **argv)
 		loadModelMatrix(mat4(1), programs[0]);
 		render(shapes[1], GL_TRIANGLE_STRIP);
 
+
+
 		//cam.setPosition(flock->boids[0]->position + vec3(0,-200,0));
-	//	cam.setLookDirection(flock->boids[0]->velocity);
+		//cam.setLookDirection(flock->boids[0]->velocity);
 
 		loadCamera(cam.getPosition(), programs[0]);
 
-	    glfwPollEvents();
-	    glfwSwapBuffers(window);
+	  glfwPollEvents();
+	  glfwSwapBuffers(window);
 	}
 	//Cleanup
 	for(Shader s: shaders)
@@ -737,6 +739,11 @@ int cursorSelectNode(GLFWwindow *window)
 		return -1;*/
 		return 1;
 }
+
+vec3 getAvgFlockPos(Flock *f)
+{
+
+}
 //########################################################################################
 
 //========================================================================================
@@ -754,8 +761,27 @@ int selectedNode =-1;
 void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-	if (state == GLFW_PRESS && selectedNode>-1)
+	if (state == GLFW_PRESS)
 	{
+		uint offset  = f->boids.size()/20;
+		uint c = 0;
+		vec3 avgPos = vec3(0);
+		for(uint i=0; i<f->boids.size(); i+=offset)
+		{
+			avgPos += f->boids[i]->position;
+			c++;
+		}
+
+		mat4 view= cam.getViewMatrix();
+		mat4 proj= cam.getPerspectiveMatrix();
+
+		uint count = 0;
+		int width, height;
+		glfwGetWindowSize(window, &width, &height);
+
+		avgPos *= (1.f/(float)c);
+
+		float depth = project(avgPos), view, proj, vec4(0.f,0.f,(float)width, (float)height)).z;
 
 	}
 }
