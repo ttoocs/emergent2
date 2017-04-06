@@ -2,16 +2,16 @@ BoidNum: 1500
 
 maxAcceleration: 10
 maxVelocity: 20
-fov: 360
+fov: 300
 
 sepRadius: 12
 alignmentRadius: 15
 cohesionRadius: 25
 
 sepCoeff: 4
-alignmentCoeff:0. 1
-cohesionCoeff: 1
+alignmentCoeff:  1
+cohesionCoeff:  2
 
-radius: 1000
+radius: 500
 
 center: 0 0 0
