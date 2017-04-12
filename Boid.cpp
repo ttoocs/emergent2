@@ -74,7 +74,8 @@ vec3 Boid::ruleAl(vector<Boid*> &boids)
 
     if(this!=b1 && detect(b1))
     {
-      if(length(dir)<myFlock->alignmentRadius)
+      float d = length(dir);
+      if(d<myFlock->alignmentRadius && d>myFlock->sepRadius)
       {
         alignment += b1->velocity*(10.f/length(dir));
         velocityNum++;
@@ -101,7 +102,8 @@ vec3 Boid::ruleCohesion(vector<Boid*> &boids)
 
     if(this!=b1 && detect(b1))
     {
-      if(length(dir) < myFlock->cohesionRadius)
+      float d = length(dir);
+      if(d < myFlock->cohesionRadius && d>myFlock->alignmentRadius)
       {
         cohesion += b1->position;
         cohesionNum++;
@@ -132,6 +134,15 @@ vec3 Boid::ruleCounterHerd()
   return dir;
 }
 
+vec3 Boid::ruleCollisons()
+{
+    vec3 retAcc = vec3(0);
+    for(CollisionObject* obj: myFlock->objects)
+      retAcc += obj->detectCollision(this);
+
+    return retAcc;
+}
+
 void Boid::behave(vector<Boid*> &boids)
 {
   vec3 separation = ruleSep(boids);
@@ -154,7 +165,7 @@ void Boid::calculateMovement(float t)
 {
   //behave();
   hashBehave();
-  vec3 acc = netAcceleration;
+  vec3 acc = netAcceleration + ruleCollisons();
   float dt = t-prevT;
 
   if(length(acc)>myFlock->maxAcceleration)
@@ -214,7 +225,7 @@ void Boid::behave(vector<Boid*> &boids)
   vec3 separation = ruleSep(boids);
   vec3 alignment = ruleAl(boids);
   vec3 cohesion = ruleCohesion(boids);
-  vec3 
+  vec3
   /*int cohesionNum = 0;
   int velocityNum = 0;
   for(Boid *b1:boids)

@@ -21,6 +21,29 @@ using namespace glm;
 
 class Flock;
 class Boid;
+class CollisionObject;
+class Sphere;
+
+class CollisionObject
+{
+public:
+  vector<vec3> vertices;
+  vector<vec3> normals;
+  vector<uint> indices;
+
+  void getGeometry(vector<vec3> &vs, vector<vec3> &nsls, vector<uint> &is);
+  virtual vec3 detectCollision(Boid* b);
+};
+
+class Sphere:public CollisionObject
+{
+public:
+  vec3 center;
+  float radius;
+
+  Sphere(vec3 center, float r);
+  vec3 detectCollision(Boid* b);
+};
 
 class Boid
 {
@@ -63,11 +86,13 @@ private:
   vec3 ruleCohesion(vector<Boid*> &boids);
   vec3 ruleHerd();
   vec3 ruleCounterHerd();
+  vec3 ruleCollisons();
 };
 class Flock
 {
 public:
   ///vector<vector<vector<vector<Boid*>>>>  grid;
+  static vector<CollisionObject*> objects;
 
   vector<Boid*> boids;
   vector<vector<Boid*>> hashTable;

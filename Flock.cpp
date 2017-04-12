@@ -3,6 +3,8 @@
 
 using namespace std;
 
+vector<CollisionObject*>  Flock::objects;
+
 Flock::Flock(int boidNum)
 {
   srand(time(NULL));

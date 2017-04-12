@@ -44,7 +44,7 @@
 #include FT_FREETYPE_H
 
 #include "Camera.h"
-#include "CustomOperators.h"
+//#include "CustomOperators.h"
 #include "ObjParser.h"
 #include "Boid.h"
 
@@ -176,13 +176,14 @@ int main(int argc, char **argv)
 //**********************************************************************************
 	vector<GLuint> programs;
 	vector<Shader> shaders;
-	vector<Geometry> shapes(2);
+	vector<Geometry> shapes(3);
 
 	initDefaultShaders(shaders);
 	initDefaultProgram(programs, shaders);
 
 	createGeometry(shapes[0]);
 	createGeometry(shapes[1]);
+	createGeometry(shapes[2]);
 //**********************************************************************************
 	loadObjFile("Models/PyramidBoid.obj", shapes[0].vertices, shapes[0].normals, shapes[0].uvs, shapes[0].indices);
 	flock = new Flock("FlockInfo.txt");
@@ -213,6 +214,12 @@ int main(int argc, char **argv)
   cout << "Running with priority: " << getpriority(PRIO_PROCESS, 0) << endl;
   cout <<"User: " << getuid() << endl;
 
+	Sphere *s = new Sphere(vec3(50,0,0), 10);
+	s->getGeometry(shapes[2].vertices, shapes[2].normals, shapes[2].indices);
+	loadGeometryArrays(programs[0], shapes[2]);
+
+	Flock::objects.push_back(s);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		if(loadViewProjMatrix(cam, programs[0])!=0)
@@ -233,15 +240,18 @@ int main(int argc, char **argv)
 			loadColor(vec4(1,0.3,0,1), programs[0]);
 			loadModelMatrix(b->getModelMatrix(), programs[0]);
 			render(shapes[0], GL_TRIANGLE_STRIP);
+			//render(shapes[1], GL_POINTS);
 		}
 
 		//setDrawingMode(0,programs[0]);
 		loadColor(vec4(0,0.3,0,1), programs[0]);
 		loadModelMatrix(mat4(1), programs[0]);
 		render(shapes[1], GL_TRIANGLE_STRIP);
+		loadColor(vec4(0,0,1,1), programs[0]);
+		render(shapes[2], GL_POINTS);
 
 
-		cam.setPosition(flock->boids[0]->position + vec3(0,-200,0));
+		//cam.setPosition(flock->boids[0]->position + vec3(0,-200,0));
 		//cam.setLookDirection(flock->boids[0]->velocity);
 
 		loadCamera(cam.getPosition(), programs[0]);
@@ -760,11 +770,11 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		uint offset  = flock->boids.size()/20;
 		uint c = 0;
 		vec3 avgPos = vec3(0);
-		for(uint i=0; i<flock->boids.size(); i+=offset)
+	/*	for(uint i=0; i<flock->boids.size(); i+=offset)
 		{
-			avgPos += flock->boids[i]->position;
+		//	avgPos += flock->boids[i]->position;
 			c++;
-		}
+		}*/
 
 		mat4 view= cam.getViewMatrix();
 		mat4 proj= cam.getPerspectiveMatrix();
@@ -772,7 +782,7 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		int width, height;
 		glfwGetWindowSize(window, &width, &height);
 
-		avgPos *= (1.f/(float)c);
+		//avgPos *= (1.f/(float)c);
 
 		vec2 v = vec2(xpos, height-ypos);
 		float depth = project(avgPos, view, proj, vec4(0.f,0.f,(float)width, (float)height)).z;
