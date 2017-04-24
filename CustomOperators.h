@@ -1,3 +1,6 @@
+#ifndef CUST_OPERATIONS_H
+#define CUST_OPERATIONS_H
+
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -34,3 +37,5 @@ ostream &operator<<(ostream &os, vector<float> &v)
     os << ">";
     return os;
 }
+
+#endif

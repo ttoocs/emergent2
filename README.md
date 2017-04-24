@@ -1,1 +1,6 @@
 # CPSC 565, Emergent project.
+
+# TODO:
+1.  Cleanup
+2.  Preditor
+3.  Multiple flocks
