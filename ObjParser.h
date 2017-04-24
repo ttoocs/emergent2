@@ -10,6 +10,10 @@
 #include <unistd.h>
 #include <sstream>
 
+#ifdef foundthis_in_.h~_of_this_file
+  #include "CustomOperators.h"   //Seems to make it not compile. /shrug.
+#endif
+
 using namespace std;
 
 void loadObjFile(	string fileName, vector<vec3> &vertices,
