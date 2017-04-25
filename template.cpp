@@ -188,7 +188,26 @@ int main(int argc, char **argv)
 	createGeometry(shapes[0]);
 	createGeometry(shapes[1]);
 	createGeometry(shapes[2]);
+
+  //Other openGL stuff.
+
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glPointSize(10.f);
+	float t=0;
+
+	errno = 0;
+	setpriority(PRIO_PROCESS, 0, -20);
 //**********************************************************************************
+
+  //priority out
+  cout << "Running with priority: " << getpriority(PRIO_PROCESS, 0) << endl;
+  cout <<"User: " << getuid() << endl;
+
+  //Start of program.
 
 	loadObjFile("Models/PyramidBoid.obj", shapes[0].vertices, shapes[0].normals, shapes[0].uvs, shapes[0].indices);
 	flock = new Flock("FlockInfo.txt");
@@ -205,20 +224,7 @@ int main(int argc, char **argv)
 	shapes[1].indices = {0,1,2,3,0};
 	loadGeometryArrays(programs[0], shapes[1]);
 
-	int width, height;
-	glfwGetWindowSize(window, &width, &height);
 	cam = *(new Camera(mat3(1), vec3(0,-200,0), width, height));
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	glPointSize(10.f);
-	float t=0;
-
-	errno = 0;
-	setpriority(PRIO_PROCESS, 0, -20);
-
-  cout << "Running with priority: " << getpriority(PRIO_PROCESS, 0) << endl;
-  cout <<"User: " << getuid() << endl;
 
   //The center sphere. (well, actually slightly off center..)
 	Sphere *s = new Sphere(vec3(50,0,0), 10);
