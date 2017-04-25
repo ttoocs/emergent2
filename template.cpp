@@ -227,8 +227,15 @@ int main(int argc, char **argv)
 	cam = *(new Camera(mat3(1), vec3(0,-200,0), width, height));
 
   //The center sphere. (well, actually slightly off center..)
-	Sphere *s = new Sphere(vec3(50,0,0), 10);
-	s->getGeometry(shapes[2].vertices, shapes[2].normals, shapes[2].indices);
+
+	vector<Sphere*> Spheres;
+	for(int i=0; i < 32; i++){
+		Sphere *s = new Sphere(vec3((float) (rand() % 100),0,0), 5 );
+		Spheres.push_back(s);
+	}
+	Sphere * s = Spheres[0];
+	//What's this line do :o?
+//	s->getGeometry(shapes[2].vertices, shapes[2].normals, shapes[2].indices);
 	loadGeometryArrays(programs[0], shapes[2]);
 
 	Flock::objects.push_back(s);
