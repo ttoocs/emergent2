@@ -1,9 +1,9 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /*
-*	Author:	Camilo Talero
-*
-*
-*	Version:	Template
+*	Author:	Camilo Talero, Scott Saunders
+* 
+* Class:  Cpsc565
+*	
 *
 *	References:
 *	https://open.gl
@@ -12,6 +12,10 @@
 *
 *	Note: Based on the Boiler Plate written by Dr. Sonny Chan, University of Calgary,
 *		Alberta Canada.
+*
+*
+* Dev-notes: X,Y,Z -> left/right,back/forward,up/down in the default camera frame.
+*
 */
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -172,7 +176,7 @@ int main(int argc, char **argv)
 	//An error will always be thrown when initializing glew.
 	//It can be safely discarded so we call glGetError() to delete it and move on.
 
-//Example code, delete or modify
+//Initalize openGL structs.
 //**********************************************************************************
 	vector<GLuint> programs;
 	vector<Shader> shaders;
@@ -185,12 +189,14 @@ int main(int argc, char **argv)
 	createGeometry(shapes[1]);
 	createGeometry(shapes[2]);
 //**********************************************************************************
+
 	loadObjFile("Models/PyramidBoid.obj", shapes[0].vertices, shapes[0].normals, shapes[0].uvs, shapes[0].indices);
 	flock = new Flock("FlockInfo.txt");
 	loadGeometryArrays(programs[0], shapes[0]);
 	loadColor(vec4(1,0.3,0,1), programs[0]);
 	setDrawingMode(1,programs[0]);
 
+  //The "ground"
 	float side = 10000;
 	shapes[1].vertices = {vec3(side, side, -flock->radius), vec3(side, -side, -flock->radius),
 		vec3(-side, -side, -flock->radius), vec3(-side, side, -flock->radius)};
@@ -214,6 +220,7 @@ int main(int argc, char **argv)
   cout << "Running with priority: " << getpriority(PRIO_PROCESS, 0) << endl;
   cout <<"User: " << getuid() << endl;
 
+  //The center sphere. (well, actually slightly off center..)
 	Sphere *s = new Sphere(vec3(50,0,0), 10);
 	s->getGeometry(shapes[2].vertices, shapes[2].normals, shapes[2].indices);
 	loadGeometryArrays(programs[0], shapes[2]);
@@ -229,7 +236,7 @@ int main(int argc, char **argv)
 		t = glfwGetTime();
 		// cout << calculateFPS(temp, t) << endl;*/
 		//t+=0.005;
-		glClearColor(0.f, 0.8f, 1.f, 1.0f);
+		glClearColor(0.f, 0.8f, 1.f, 1.0f); //blue-ish sky.
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		flock->update(t);
@@ -278,6 +285,8 @@ int main(int argc, char **argv)
 */
 //========================================================================================
 
+
+//This isn't setting a mode, its setting a uniform locations.
 void setDrawingMode(int mode, GLuint program)
 {
 	glUseProgram(program);
