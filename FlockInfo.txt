@@ -1,4 +1,4 @@
-BoidNum: 2000
+BoidNum: 1000
 
 maxAcceleration: 10
 maxVelocity: 20
