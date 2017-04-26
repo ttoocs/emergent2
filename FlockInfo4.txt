@@ -4,16 +4,16 @@ maxAcceleration: 10
 maxVelocity: 20
 fov: 300
 
-sepRadius: 12
+sepRadius: 10
 alignmentRadius: 15
-cohesionRadius: 25
+cohesionRadius: 20
 
-sepCoeff: 0
-alignmentCoeff:  0
-cohesionCoeff:  1
+sepCoeff: 3
+alignmentCoeff: 5
+cohesionCoeff: 8
 
 radius: 500
 
 center: 0 0 0
 
-color:	0 0.4 0.4
+color:	0.8 0.1 0.8
