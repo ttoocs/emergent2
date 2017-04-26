@@ -1,9 +1,9 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /*
 *	Author:	Camilo Talero, Scott Saunders
-* 
+*
 * Class:  Cpsc565
-*	
+*
 *
 *	References:
 *	https://open.gl
@@ -125,6 +125,9 @@ void createGeometry(Geometry &g, vector<vec3> vertices, vector<uint> indices);
 void createGeometry(Geometry &g);
 void deleteGeometry(Geometry &g);
 
+void initFlocks(int numFlocks);
+void initFlocks();
+
 GLFWwindow* createWindow();
 
 string loadSourceFile(string &filepath);
@@ -214,10 +217,10 @@ int main(int argc, char **argv)
   cout <<"User: " << getuid() << endl;
 
   //The flocks:
-	
+
 	loadObjFile("Models/PyramidBoid.obj", shapes[0].vertices, shapes[0].normals, shapes[0].uvs, shapes[0].indices);
-	Flock * flock = new Flock("FlockInfo.txt");
-	selectedFlock = flock;	//The first flock is selected.
+	initFlocks(10);	//Make n flocks.
+	selectedFlock = flocks[0];
 
 	loadGeometryArrays(programs[0], shapes[0]);
 	loadColor(vec4(1,0.3,0,1), programs[0]);
@@ -225,8 +228,8 @@ int main(int argc, char **argv)
 
   //The "ground"
 	float side = 10000;
-	shapes[1].vertices = {vec3(side, side, -flock->radius), vec3(side, -side, -flock->radius),
-		vec3(-side, -side, -flock->radius), vec3(-side, side, -flock->radius)};
+	shapes[1].vertices = {vec3(side, side, -selectedFlock->radius), vec3(side, -side, -selectedFlock->radius),
+		vec3(-side, -side, -selectedFlock->radius), vec3(-side, side, -selectedFlock->radius)};
 	shapes[1].normals = {vec3(0,0,1), vec3(0,0,1), vec3(0,0,1), vec3(0,0,1)};
 
 	shapes[1].indices = {0,1,2,3,0};
@@ -255,15 +258,18 @@ int main(int argc, char **argv)
 		glClearColor(0.f, 0.8f, 1.f, 1.0f); //blue-ish sky.
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		flock->update(t);
 		setDrawingMode(1,programs[0]);
 		glUseProgram(programs[0]);
-		for(Boid *b: flock->boids)
-		{
-			loadColor(vec4(1,0.3,0,1), programs[0]);
-			loadModelMatrix(b->getModelMatrix(), programs[0]);
-			render(shapes[0], GL_TRIANGLE_STRIP);
-			//render(shapes[1], GL_POINTS);
+
+		for(Flock * f : flocks){
+			f->update(t);
+			for(Boid *b: f->boids)
+			{
+				loadColor(vec4(1,0.3,0,1), programs[0]); //This should be a property of the flock itself
+				loadModelMatrix(b->getModelMatrix(), programs[0]);
+				render(shapes[0], GL_TRIANGLE_STRIP);
+				//render(shapes[1], GL_POINTS);
+			}
 		}
 
 		//setDrawingMode(0,programs[0]);
@@ -271,9 +277,9 @@ int main(int argc, char **argv)
 		loadColor(vec4(0,0.3,0,1), programs[0]);
 		loadModelMatrix(mat4(1), programs[0]);
 		render(shapes[1], GL_TRIANGLE_STRIP);
-	
 
-		//Draw spheres		
+
+		//Draw spheres
 		loadColor(vec4(0,0,1,1), programs[0]);
 
 		for(Sphere * s: Spheres){
@@ -303,6 +309,38 @@ int main(int argc, char **argv)
 	glfwTerminate();
 }
 //**************************************************************************************\\
+
+void initFlocks(int numFlocks){
+    while(flocks.size() > 0){
+        int i = flocks.size()-1;
+        Flock * f = flocks[i];
+        f->boids.clear();
+        delete(f);
+        flocks.pop_back();
+        glfwSetTime(0);
+    }
+
+    for(int i =0; i < numFlocks; i++){
+        Flock * flock = new Flock("FlockInfo.txt");
+        flocks.push_back(flock);
+    }
+
+    selectedFlock = NULL;
+}
+
+void initFlocks(){
+    int numFlocks = flocks.size();
+    initFlocks(numFlocks);
+}
+
+
+
+
+
+
+
+
+
 
 //========================================================================================
 /*
@@ -802,7 +840,7 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 	int b2 = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 	if (b1 == GLFW_PRESS || b2 == GLFW_PRESS)
 	{
-		
+
 		uint c = 0;
 		vec3 avgPos = vec3(0);
 		if(selectedFlock != NULL){
@@ -825,18 +863,9 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		vec2 v = vec2(xpos, height-ypos);
 		float depth = project(avgPos, view, proj, vec4(0.f,0.f,(float)width, (float)height)).z;
 		vec3 projCursor = unProject(vec3(v.x,v.y,depth), view, proj, vec4(0.f,0.f,(float)width, (float)height));
-		
+
 
 		flockWrapperSet(herdPoint,projCursor);
-/*
-		if(selectedFlock != NULL){
-			selectedFlock->herdPoint = projCursor;	//selected -> herd it.
-		}else{
-			for(Flock * f : flocks){
-				f->herdPoint = projCursor;		//Else, herd all.
-			}
-		}
-*/
 	}
 }
 
@@ -884,13 +913,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
     else if(key == GLFW_KEY_R && action == GLFW_PRESS)
     {
-			//TODO:	put this in a function, reset all the things.
-/*
-    	flock->boids.clear();
-    	delete(flock);
-    	flock = new Flock("FlockInfo.txt");
-    	glfwSetTime(0);
-*/
+            initFlocks();
     }
 
     else if(key == GLFW_KEY_F12 && action == GLFW_PRESS)
