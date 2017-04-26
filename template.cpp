@@ -219,7 +219,7 @@ int main(int argc, char **argv)
   //The flocks:
 
 	loadObjFile("Models/PyramidBoid.obj", shapes[0].vertices, shapes[0].normals, shapes[0].uvs, shapes[0].indices);
-	initFlocks(10);	//Make n flocks.
+	initFlocks(2);	//Make n flocks.
 	selectedFlock = flocks[0];
 
 	loadGeometryArrays(programs[0], shapes[0]);
@@ -322,7 +322,10 @@ void initFlocks(int numFlocks){
     }
 
     for(int i =0; i < numFlocks; i++){
-        Flock * flock = new Flock("FlockInfo.txt");
+				string filename;
+				filename = "FlockInfo" + to_string(i) + ".txt";
+				//filename = "FlockInfo.txt"
+        Flock * flock = new Flock(filename);
         flocks.push_back(flock);
     }
 
@@ -333,15 +336,6 @@ void initFlocks(){
     int numFlocks = flocks.size();
     initFlocks(numFlocks);
 }
-
-
-
-
-
-
-
-
-
 
 //========================================================================================
 /*
