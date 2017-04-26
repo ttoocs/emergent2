@@ -219,7 +219,7 @@ int main(int argc, char **argv)
   //The flocks:
 
 	loadObjFile("Models/PyramidBoid.obj", shapes[0].vertices, shapes[0].normals, shapes[0].uvs, shapes[0].indices);
-	initFlocks(2);	//Make n flocks.
+	initFlocks(5);	//Make n flocks.
 	selectedFlock = flocks[0];
 
 	loadGeometryArrays(programs[0], shapes[0]);
@@ -241,8 +241,19 @@ int main(int argc, char **argv)
   //The center sphere. (well, actually slightly off center..)
 
 	vector<Sphere*> Spheres;
-	for(int i=0; i < 2; i++){
-		Sphere *s = new Sphere(vec3((float) ((rand() % 200 )- 100),0,0), 5 );
+	#define ArangeSX 250
+	#define ArangeSY 250
+	#define ArangeSZ 250
+	#define ArangeSRmn 1
+	#define ArangeSRmx 20
+	for(int i=0; i < 1024 ; i++){
+
+		Sphere *s = new Sphere(vec3((float) ((rand() % ArangeSX*2 )- ArangeSX),
+			(float) ((rand() % ArangeSY*2 )- ArangeSY),
+			(float) ((rand() % ArangeSZ*2 )- ArangeSZ)),
+			(float) ((rand() % ArangeSRmx) + (ArangeSRmn)) );
+
+			//Sphere *s = new Sphere(vec3(0,0,0),5);
 		Spheres.push_back(s);
 		Flock::objects.push_back(s);
 	}
@@ -261,7 +272,6 @@ int main(int argc, char **argv)
 
 		setDrawingMode(1,programs[0]);
 		glUseProgram(programs[0]);
-
 		for(Flock * f : flocks){
 			f->update(t);
 			for(Boid *b: f->boids)
