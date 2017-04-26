@@ -80,7 +80,7 @@ vec3 Sphere::detectCollision(Boid *b)
     }
 
     offset -= normal*(radius+10);
-    if(length(offset)<100 && length(offset)>0.000000000000000000000001f)
+    if(length(offset)<100 && length(offset)>EPSILON)
     {
       force = normal*(-1.f/(pow(length(offset),2.f)));
     }
@@ -92,8 +92,8 @@ vec3 Sphere::detectCollision(Boid *b)
 
 vec3 CollisionObject::detectCollision(Boid *b){return vec3(0);}
 
-#define U_DIVISIONS 500
-#define V_DIVISIONS 500
+#define U_DIVISIONS 50
+#define V_DIVISIONS 50
 Sphere::Sphere(vec3 c, float r)
 {
   this->center = c;
