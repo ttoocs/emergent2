@@ -248,6 +248,19 @@ Flock::Flock(string fileName)
         center = vec3(x,y,z);
       }
 
+      else if(word == "color:"){
+        iss >> word;
+        float r = stof(word);
+
+        iss >> word;
+        float g = stof(word);
+
+        iss >> word;
+        float b = stof(word);
+
+        color = vec3(r,g,b);
+      }
+
       else
         cerr << "Unrecongized line: " << line << endl;
     }

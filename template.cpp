@@ -228,8 +228,9 @@ int main(int argc, char **argv)
 
   //The "ground"
 	float side = 10000;
-	shapes[1].vertices = {vec3(side, side, -selectedFlock->radius), vec3(side, -side, -selectedFlock->radius),
-		vec3(-side, -side, -selectedFlock->radius), vec3(-side, side, -selectedFlock->radius)};
+	float down = -1000;
+	shapes[1].vertices = {vec3(side, side, down), vec3(side, -side, down),
+		vec3(-side, -side, down), vec3(-side, side, down)};
 	shapes[1].normals = {vec3(0,0,1), vec3(0,0,1), vec3(0,0,1), vec3(0,0,1)};
 
 	shapes[1].indices = {0,1,2,3,0};
@@ -265,7 +266,7 @@ int main(int argc, char **argv)
 			f->update(t);
 			for(Boid *b: f->boids)
 			{
-				loadColor(vec4(1,0.3,0,1), programs[0]); //This should be a property of the flock itself
+				loadColor(vec4(f->color,1), programs[0]); //This should be a property of the flock itself
 				loadModelMatrix(b->getModelMatrix(), programs[0]);
 				render(shapes[0], GL_TRIANGLE_STRIP);
 				//render(shapes[1], GL_POINTS);

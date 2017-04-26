@@ -88,6 +88,9 @@ private:
   vec3 ruleCounterHerd();
   vec3 ruleCollisons();
 };
+
+
+//Hey, this isn't a boid... it should be in a flock.h or something..
 class Flock
 {
 public:
@@ -114,6 +117,7 @@ public:
 
   vec3 center;
   vec3 herdPoint;
+  vec3 color = vec3(1,0.3,0);
   float radius = 500;
 
   Flock(int boidNum);
