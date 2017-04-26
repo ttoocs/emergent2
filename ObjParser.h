@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <sstream>
 
-#ifdef foundthis_in_.h~_of_this_file
+#ifdef found_this_in_duplicate_of_this_file
   #include "CustomOperators.h"   //Seems to make it not compile. /shrug.
 #endif
 
