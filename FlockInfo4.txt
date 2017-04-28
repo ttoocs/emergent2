@@ -8,7 +8,7 @@ sepRadius: 10
 alignmentRadius: 20
 cohesionRadius: 40
 
-sepCoeff: 30
+sepCoeff: 17
 alignmentCoeff: 0.5
 cohesionCoeff: 15
 

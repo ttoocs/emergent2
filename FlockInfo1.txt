@@ -8,9 +8,9 @@ sepRadius: 12
 alignmentRadius: 15
 cohesionRadius: 25
 
-sepCoeff: 0
-alignmentCoeff:  0
-cohesionCoeff:  1
+sepCoeff: 1
+alignmentCoeff:  0.01
+cohesionCoeff:  0.5
 
 radius: 500
 

@@ -145,9 +145,7 @@ double calculateFPS(double prevTime, double currentTime);
 
 //--------------------------------------------------------------------------------------\\
 //**************************************************************************************\\
-
-	/*	MAIN FUNCTION 	*/
-
+git@github.com:ttoocs/emergent2.git
 //**************************************************************************************\\
 //--------------------------------------------------------------------------------------\\
 
@@ -850,18 +848,18 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		vec3 avgPos = vec3(0);
 
 		if(selectedFlock != NULL){
-			uint offset  = selectedFlock->boids.size()/20;				
-			for(uint i=0; i<flock->boids.size(); i+=offset)
+			uint offset  = selectedFlock->boids.size()/20;
+			for(uint i=0; i<selectedFlock->boids.size(); i+=offset)
 			{
-				avgPos += flock->boids[i]->position;
+				avgPos += selectedFlock->boids[i]->position;
 				c++;
 			}
 		}else{  //No selected flock:
       for(Flock * f : flocks){
-        uint offset  = selectedFlock->boids.size()/20;
-        for(uint i=0; i<flock->boids.size(); i+=offset)         
+        uint offset  = f->boids.size()/20;
+        for(uint i=0; i< f->boids.size(); i+=offset)
         {
-          avgPos += flock->boids[i]->position;
+          avgPos += f->boids[i]->position;
           c++;
         }
       }

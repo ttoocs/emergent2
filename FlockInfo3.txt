@@ -6,11 +6,11 @@ fov: 300
 
 sepRadius: 12
 alignmentRadius: 20
-cohesionRadius: 25
+cohesionRadius: 250
 
 sepCoeff: 1
-alignmentCoeff: 0
-cohesionCoeff: 10
+alignmentCoeff: 0.1
+cohesionCoeff: 0.1
 
 radius: 500
 
