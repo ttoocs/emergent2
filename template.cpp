@@ -846,16 +846,26 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 	if (b1 == GLFW_PRESS || b2 == GLFW_PRESS)
 	{
 
-		//uint c = 0;
+		uint c = 0;
 		vec3 avgPos = vec3(0);
-		/*if(selectedFlock != NULL){
-			uint offset  = selectedFlock->boids.size()/20;						//Only works if flock isn't null.
-			for(uint i=0; i<flock->boids.size(); i+=offset)					//Disabled anyways.
+
+		if(selectedFlock != NULL){
+			uint offset  = selectedFlock->boids.size()/20;				
+			for(uint i=0; i<flock->boids.size(); i+=offset)
 			{
-			//	avgPos += flock->boids[i]->position;
+				avgPos += flock->boids[i]->position;
 				c++;
 			}
-		}*/
+		}else{  //No selected flock:
+      for(Flock * f : flocks){
+        uint offset  = selectedFlock->boids.size()/20;
+        for(uint i=0; i<flock->boids.size(); i+=offset)         
+        {
+          avgPos += flock->boids[i]->position;
+          c++;
+        }
+      }
+    }
 
 		mat4 view= cam.getViewMatrix();
 		mat4 proj= cam.getPerspectiveMatrix();
@@ -863,7 +873,7 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		int width, height;
 		glfwGetWindowSize(window, &width, &height);
 
-		//avgPos *= (1.f/(float)c);
+		avgPos *= (1.f/(float)c);
 
 		vec2 v = vec2(xpos, height-ypos);
 		float depth = project(avgPos, view, proj, vec4(0.f,0.f,(float)width, (float)height)).z;
