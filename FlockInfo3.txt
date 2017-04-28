@@ -5,12 +5,12 @@ maxVelocity: 20
 fov: 300
 
 sepRadius: 12
-alignmentRadius: 15
+alignmentRadius: 20
 cohesionRadius: 25
 
 sepCoeff: 1
 alignmentCoeff: 0
-cohesionCoeff: 0
+cohesionCoeff: 10
 
 radius: 500
 

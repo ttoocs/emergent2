@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 	#define ArangeSZ 250
 	#define ArangeSRmn 1
 	#define ArangeSRmx 20
-	for(int i=0; i < 1024 ; i++){
+	for(int i=0; i < 7 ; i++){
 
 		Sphere *s = new Sphere(vec3((float) ((rand() % ArangeSX*2 )- ArangeSX),
 			(float) ((rand() % ArangeSY*2 )- ArangeSY),
@@ -274,9 +274,9 @@ int main(int argc, char **argv)
 		glUseProgram(programs[0]);
 		for(Flock * f : flocks){
 			f->update(t);
+			loadColor(vec4(f->color,1), programs[0]); //This should be a property of the flock itself
 			for(Boid *b: f->boids)
 			{
-				loadColor(vec4(f->color,1), programs[0]); //This should be a property of the flock itself
 				loadModelMatrix(b->getModelMatrix(), programs[0]);
 				render(shapes[0], GL_TRIANGLE_STRIP);
 				//render(shapes[1], GL_POINTS);
@@ -846,16 +846,16 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 	if (b1 == GLFW_PRESS || b2 == GLFW_PRESS)
 	{
 
-		uint c = 0;
+		//uint c = 0;
 		vec3 avgPos = vec3(0);
-		if(selectedFlock != NULL){
+		/*if(selectedFlock != NULL){
 			uint offset  = selectedFlock->boids.size()/20;						//Only works if flock isn't null.
-		/*	for(uint i=0; i<flock->boids.size(); i+=offset)					//Disabled anyways.
+			for(uint i=0; i<flock->boids.size(); i+=offset)					//Disabled anyways.
 			{
 			//	avgPos += flock->boids[i]->position;
 				c++;
-			}*/
-		}
+			}
+		}*/
 
 		mat4 view= cam.getViewMatrix();
 		mat4 proj= cam.getPerspectiveMatrix();
@@ -878,14 +878,22 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	if(button == GLFW_MOUSE_BUTTON_LEFT && action==GLFW_PRESS)
+	{
 		flockWrapperSet(herding,true);
+	}
 	if(button == GLFW_MOUSE_BUTTON_LEFT && action==GLFW_RELEASE)
+	{
 		flockWrapperSet(herding,false);
+	}
 
 	if(button == GLFW_MOUSE_BUTTON_RIGHT && action==GLFW_PRESS)
+	{
 		flockWrapperSet(cHerding,true);
+	}
 	if(button == GLFW_MOUSE_BUTTON_RIGHT && action==GLFW_RELEASE)
+	{
 		flockWrapperSet(cHerding,false);
+	}
 }
 
 #define CAM_SPEED 1.f
